@@ -1,0 +1,1 @@
+Provide macro context based on the asset type, its relevant index, and general market conditions. Return structured JSON matching the provided schema. Highlight any correlation or sector trends.

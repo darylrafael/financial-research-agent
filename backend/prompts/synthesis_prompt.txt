@@ -1,0 +1,1 @@
+Synthesize the technical, news, and macro signals into a cohesive executive summary. Output structured JSON matching the provided schema. Clearly articulate the bull case and bear case, assign a confidence score, give a recommendation, and outline key risks.

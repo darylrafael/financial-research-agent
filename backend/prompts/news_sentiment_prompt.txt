@@ -1,0 +1,1 @@
+Analyze the sentiment of the following news headlines for a given ticker. Return structured JSON matching the provided schema. Focus on the financial implications of the headlines.
