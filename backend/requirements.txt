@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+aiosqlite
+yfinance
+ta
+pydantic
+pydantic-settings
+httpx
+sse-starlette
+pytest
+pytest-asyncio
