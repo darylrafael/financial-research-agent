@@ -55,8 +55,9 @@ interface SynthesisReport {
 }
 
 interface AgentState {
-  status: 'idle' | 'running' | 'success' | 'error';
+  status: 'idle' | 'running' | 'success' | 'warning' | 'error';
   error?: string;
+  warning?: string;
   data?: any;
 }
 
@@ -97,11 +98,22 @@ export default function SearchPage() {
         break;
         
       case 'agent_completed':
+        const isPartial = data.status === 'PARTIAL';
         setAgentStates(prev => ({
           ...prev,
-          [data.agent]: { status: 'success', data: data.result }
+          [data.agent]: { 
+            status: isPartial ? 'warning' : 'success', 
+            data: data.result,
+            warning: data.warning
+          }
         }));
-        setLogs(prev => [...prev, { text: `[${data.agent}] Thread resolved successfully`, type: 'success', timestamp: timeStr }]);
+        setLogs(prev => [...prev, { 
+          text: isPartial 
+            ? `[${data.agent}] Thread resolved with warning: ${data.warning}` 
+            : `[${data.agent}] Thread resolved successfully`, 
+          type: isPartial ? 'info' : 'success', 
+          timestamp: timeStr 
+        }]);
         break;
         
       case 'error':
@@ -141,7 +153,7 @@ export default function SearchPage() {
 
     try {
       const targetTicker = ticker.trim().toUpperCase();
-      const response = await fetch(`http://localhost:8000/api/analyze/${targetTicker}`, {
+      const response = await fetch(`http://localhost:8001/api/analyze/${targetTicker}`, {
         method: "POST"
       });
 
@@ -338,6 +350,12 @@ export default function SearchPage() {
                           <span className="text-emerald-400 flex items-center gap-1 font-medium bg-emerald-950/20 border border-emerald-800/30 px-2 py-0.5 rounded">
                             <CheckCircle2 size={10} />
                             Success
+                          </span>
+                        )}
+                        {status === 'warning' && (
+                          <span className="text-amber-400 flex items-center gap-1 font-medium bg-amber-950/20 border border-amber-800/30 px-2 py-0.5 rounded animate-pulse">
+                            <AlertTriangle size={10} />
+                            Warning
                           </span>
                         )}
                         {status === 'error' && (
@@ -589,9 +607,17 @@ export default function SearchPage() {
 
                 {/* News Sentiment Agent Card */}
                 <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-5 backdrop-blur-sm shadow-md">
-                  <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/50 pb-2">
-                    <Newspaper size={14} className="text-cyan-400" />
-                    Sentiment Indexes
+                  <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center justify-between border-b border-slate-800/50 pb-2">
+                    <span className="flex items-center gap-1.5">
+                      <Newspaper size={14} className="text-cyan-400" />
+                      Sentiment Indexes
+                    </span>
+                    {news.status === 'warning' && (
+                      <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
+                        <AlertTriangle size={10} /> 
+                        WARNING
+                      </span>
+                    )}
                   </h3>
 
                   {news.status === 'running' && (
@@ -613,8 +639,14 @@ export default function SearchPage() {
                     </div>
                   )}
 
-                  {news.status === 'success' && news.data && (
+                  {(news.status === 'success' || news.status === 'warning') && news.data && (
                     <div className="space-y-4">
+                      {news.warning && (
+                        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 p-2.5 rounded-xl text-[11px] leading-relaxed flex items-start gap-2">
+                          <AlertTriangle className="shrink-0 mt-0.5 text-amber-400" size={14} />
+                          <div>{news.warning}</div>
+                        </div>
+                      )}
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider">Overall Sentiment</div>

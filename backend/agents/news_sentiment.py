@@ -16,4 +16,8 @@ class NewsSentimentAgent(BaseAgent):
             raise Exception(data["error"])
         # Validate schema
         validated = NewsSentiment.model_validate(data)
-        return validated.model_dump()
+        result_dict = validated.model_dump()
+        if validated.article_count == 0:
+            result_dict["_agent_status"] = "PARTIAL"
+            result_dict["_agent_warning"] = "No news articles found for this ticker."
+        return result_dict

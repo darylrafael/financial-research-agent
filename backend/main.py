@@ -9,7 +9,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -22,7 +22,7 @@ async def startup():
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"error": "Internal Server Error", "details": str(exc)})
 
-@app.post("/api/analyze/{ticker}")
+@app.api_route("/api/analyze/{ticker}", methods=["GET", "POST"])
 async def analyze_ticker(ticker: str):
     # db lifecycle is now safely encapsulated inside run_analysis generator
     return EventSourceResponse(run_analysis(ticker))

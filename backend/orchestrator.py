@@ -31,10 +31,18 @@ async def run_analysis(ticker: str):
         for coro in asyncio.as_completed(tasks):
             agent_name, result = await coro
             context[agent_name] = result
-            logs_buffer.append((agent_name, result["duration_ms"], result.get("tokens", 0), result["status"], result.get("error")))
             
-            if result["status"] == "SUCCESS":
-                yield json.dumps({"event": "agent_completed", "agent": agent_name, "result": result["data"]})
+            error_or_warning = result.get("warning") if result["status"] == "PARTIAL" else result.get("error")
+            logs_buffer.append((agent_name, result["duration_ms"], result.get("tokens", 0), result["status"], error_or_warning))
+            
+            if result["status"] in ["SUCCESS", "PARTIAL"]:
+                yield json.dumps({
+                    "event": "agent_completed",
+                    "agent": agent_name,
+                    "result": result["data"],
+                    "status": result["status"],
+                    "warning": result.get("warning")
+                })
             else:
                 yield json.dumps({"event": "error", "agent": agent_name, "error": result["error"]})
         

@@ -20,7 +20,19 @@ class BaseAgent(ABC):
             result = await asyncio.wait_for(self.process(ticker, context), timeout=self.timeout)
             duration = int((time.time() - start_time) * 1000)
             logger.info(f"{self.name} completed in {duration}ms")
-            return {"status": "SUCCESS", "data": result, "duration_ms": duration, "tokens": 0}
+            
+            status = "SUCCESS"
+            warning = None
+            if isinstance(result, dict):
+                if "_agent_status" in result:
+                    status = result.pop("_agent_status")
+                if "_agent_warning" in result:
+                    warning = result.pop("_agent_warning")
+            
+            res = {"status": status, "data": result, "duration_ms": duration, "tokens": 0}
+            if warning is not None:
+                res["warning"] = warning
+            return res
         except asyncio.TimeoutError:
             duration = int((time.time() - start_time) * 1000)
             logger.error(f"{self.name} timed out after {duration}ms")
